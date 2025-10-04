@@ -1,71 +1,61 @@
-# vscode-test-specialist README
+# vscode-test-specialist
 
-This is the README for your extension "vscode-test-specialist". After writing up a brief description, we recommend including the following sections.
+A VS Code extension that provides a specialized chat participant for software testing assistance.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+This extension registers a chat participant called **The Test Specialist** that can be invoked using `@testarch` in the VS Code chat interface.
 
-For example if there is an image subfolder under your extension project workspace:
+### Key Features:
 
-\!\[feature X\]\(images/feature-x.png\)
+1. **Chat Participant Registration**: Registers a chat participant with ID `test-specialist.assistant`
+2. **Active File Context**: Automatically pulls in the content of the currently active file in the VS Code editor as context
+3. **Interactive Chat**: Responds to user queries with contextual information about the open file
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Usage
+
+1. Open a file in VS Code
+2. Open the chat interface (View > Chat or `Ctrl+Alt+I`)
+3. Type `@testarch` followed by your question
+4. The Test Specialist will respond with information about your currently active file and help with software testing
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- VS Code version 1.104.0 or higher
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+This extension does not currently contribute any settings.
 
-For example:
+## Development
 
-This extension contributes the following settings:
+### Building
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+```bash
+npm run compile
+```
 
-## Known Issues
+### Linting
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+```bash
+npm run lint
+```
+
+### Testing
+
+```bash
+npm test
+```
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
+Initial release of the Test Specialist extension:
+- Chat participant registration
+- Active file context detection
+- Basic chat response handler
 
-Initial release of ...
+## License
 
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+MIT - See LICENSE file for details
