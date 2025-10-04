@@ -12,10 +12,13 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
+    "chatParticipants": [
       {
-        "command": "vscode-test-specialist.helloWorld",
-        "title": "Hello World"
+        "id": "test-specialist.assistant",
+        "fullName": "The Test Specialist",
+        "name": "testarch",
+        "description": "A bot specialized in software testing",
+        "isSticky": true
       }
     ]
   },

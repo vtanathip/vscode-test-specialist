@@ -10,16 +10,39 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "vscode-test-specialist" is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('vscode-test-specialist.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from vscode-test-specialist!');
-	});
+	// Register the chat participant
+	const participant = vscode.chat.createChatParticipant('test-specialist.assistant', handler);
+	participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icon.png');
 
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(participant);
+}
+
+// Chat request handler
+async function handler(
+	request: vscode.ChatRequest,
+	context: vscode.ChatContext,
+	stream: vscode.ChatResponseStream,
+	token: vscode.CancellationToken
+): Promise<vscode.ChatResult> {
+	// Try to get the content of the currently active file
+	const activeEditor = vscode.window.activeTextEditor;
+	
+	if (activeEditor) {
+		const document = activeEditor.document;
+		const fileName = document.fileName;
+		const fileContent = document.getText();
+		
+		stream.markdown(`I can see you have **${fileName}** open with the following content:\n\n`);
+		stream.markdown('```\n' + fileContent + '\n```\n\n');
+		stream.markdown(`Your request was: "${request.prompt}"\n\n`);
+		stream.markdown('I am The Test Specialist, here to help you with software testing!');
+	} else {
+		stream.markdown('No file is currently open in the editor.\n\n');
+		stream.markdown(`Your request was: "${request.prompt}"\n\n`);
+		stream.markdown('I am The Test Specialist, here to help you with software testing!');
+	}
+	
+	return { metadata: { command: '' } };
 }
 
 // This method is called when your extension is deactivated
