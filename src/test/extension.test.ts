@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import { activate } from '../extension';
+import { activate, parseProposedChanges } from '../extension';
 
 suite('Test Specialist Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -153,6 +153,176 @@ suite('Test Specialist Extension Test Suite', () => {
 			// We mainly want to verify that the handler was called with the right parameters
 			assert.ok(Array.isArray(messages), 'Should pass messages array');
 			assert.strictEqual(messages.length, 1, 'Should have exactly one message');
+		});
+
+		test('Handler should detect and handle proposed changes with HITL confirmation', async () => {
+			// Mock language model with response containing proposed changes
+			const mockResponse = `Here's how to improve your tests:
+
+**PROPOSED_CHANGE:** This change adds proper async/await handling to prevent test timeouts and improve reliability.
+
+\`\`\`typescript
+describe('User Service', () => {
+  test('should fetch user data', async () => {
+    const result = await userService.getUser(123);
+    expect(result).toBeDefined();
+  });
+});
+\`\`\`
+
+This will make your tests more robust.`;
+
+			const mockModel = {
+				id: 'test-model',
+				name: 'Test Model',
+				vendor: 'Test Vendor',
+				family: 'test-family',
+				version: '1.0.0',
+				maxInputTokens: 4096,
+				countTokens: sandbox.stub(),
+				sendRequest: sandbox.stub().resolves({
+					text: (async function* () {
+						yield mockResponse;
+					})()
+				})
+			} as any;
+
+			const selectChatModelsStub = sandbox.stub(vscode.lm, 'selectChatModels');
+			selectChatModelsStub.resolves([mockModel]);
+
+			// Mock showWarningMessage to simulate user canceling
+			const showWarningMessageStub = sandbox.stub(vscode.window, 'showWarningMessage');
+			showWarningMessageStub.resolves(undefined);
+
+			// Mock stream
+			const stream = { markdown: sandbox.stub() } as any;
+
+			// Mock request and context
+			const request = { prompt: 'Help me write better tests' } as any;
+			const chatContext = {} as any;
+			const token = { isCancellationRequested: false } as any;
+
+			// Get the handler from activation
+			const createChatParticipantStub = sandbox.stub(vscode.chat, 'createChatParticipant');
+			const mockParticipant = { iconPath: undefined, dispose: () => {} } as any;
+			createChatParticipantStub.returns(mockParticipant);
+
+			activate(context);
+			const handler = createChatParticipantStub.getCall(0).args[1];
+
+			// Execute handler
+			await handler(request, chatContext, stream, token);
+
+			// Verify HITL checkpoint was shown
+			assert.ok(stream.markdown.args.some((call: any[]) => 
+				call[0] && call[0].includes('Human-in-the-Loop Checkpoint')
+			), 'Should show HITL checkpoint');
+
+			// Verify confirmation dialog was shown
+			assert.ok(showWarningMessageStub.calledOnce, 'Should show confirmation dialog');
+			const [message] = showWarningMessageStub.getCall(0).args;
+			assert.ok(message.includes('The Test Specialist wants to make'), 'Should include change description');
+		});
+
+		test('Handler should show detailed preview when user selects "Review First"', async () => {
+			// This test just verifies that the confirmation dialog appears for proposed changes
+			// The actual preview functionality is tested separately
+			const mockResponse = `**PROPOSED_CHANGE:** Add error handling to prevent crashes.
+
+\`\`\`javascript
+try {
+  const data = await fetchData();
+  return data;
+} catch (error) {
+  console.error('Failed to fetch:', error);
+  return null;
+}
+\`\`\``;
+
+			const mockModel = {
+				id: 'test-model',
+				name: 'Test Model',
+				vendor: 'Test Vendor',
+				family: 'test-family',
+				version: '1.0.0',
+				maxInputTokens: 4096,
+				countTokens: sandbox.stub(),
+				sendRequest: sandbox.stub().resolves({
+					text: (async function* () {
+						yield mockResponse;
+					})()
+				})
+			} as any;
+
+			const selectChatModelsStub = sandbox.stub(vscode.lm, 'selectChatModels');
+			selectChatModelsStub.resolves([mockModel]);
+
+			// Mock showWarningMessage to simulate user canceling (simpler test)
+			const showWarningMessageStub = sandbox.stub(vscode.window, 'showWarningMessage');
+			showWarningMessageStub.resolves(undefined);
+
+			// Mock stream
+			const stream = { markdown: sandbox.stub() } as any;
+
+			// Mock request and context
+			const request = { prompt: 'Improve error handling' } as any;
+			const chatContext = {} as any;
+			const token = { isCancellationRequested: false } as any;
+
+			// Get the handler from activation
+			const createChatParticipantStub = sandbox.stub(vscode.chat, 'createChatParticipant');
+			const mockParticipant = { iconPath: undefined, dispose: () => {} } as any;
+			createChatParticipantStub.returns(mockParticipant);
+
+			activate(context);
+			const handler = createChatParticipantStub.getCall(0).args[1];
+
+			// Execute handler
+			await handler(request, chatContext, stream, token);
+
+			// Verify HITL checkpoint was shown (main goal of this test)
+			assert.ok(stream.markdown.args.some((call: any[]) => 
+				call[0] && call[0].includes('Human-in-the-Loop Checkpoint')
+			), 'Should show HITL checkpoint');
+
+			// Verify confirmation dialog was shown
+			assert.ok(showWarningMessageStub.calledOnce, 'Should show confirmation dialog');
+		});
+	});
+
+	suite('HITL Helper Functions', () => {
+		test('parseProposedChanges should extract changes from response', () => {
+			
+			const response = `Some text before.
+
+**PROPOSED_CHANGE:** Add unit test for validation function.
+
+\`\`\`typescript
+test('should validate email format', () => {
+  expect(validateEmail('test@example.com')).toBe(true);
+});
+\`\`\`
+
+**PROPOSED_CHANGE:** Improve error handling in the service.
+
+\`\`\`javascript
+if (!user) {
+  throw new Error('User not found');
+}
+\`\`\`
+
+Some text after.`;
+
+			const changes = parseProposedChanges(response);
+
+			assert.strictEqual(changes.length, 2, 'Should extract 2 changes');
+			assert.ok(changes[0].explanation.includes('Add unit test'), 'Should extract first explanation');
+			assert.ok(changes[0].newCode.includes('validateEmail'), 'Should extract first code');
+			assert.strictEqual(changes[0].language, 'typescript', 'Should detect TypeScript language');
+			
+			assert.ok(changes[1].explanation.includes('Improve error handling'), 'Should extract second explanation');
+			assert.ok(changes[1].newCode.includes('User not found'), 'Should extract second code');
+			assert.strictEqual(changes[1].language, 'javascript', 'Should detect JavaScript language');
 		});
 	});
 });

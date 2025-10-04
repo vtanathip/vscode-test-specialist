@@ -1,60 +1,86 @@
-# vscode-test-specialist
+# VS Code Test Specialist
 
-A VS Code extension that provides a specialized chat participant for software testing assistance.
+An AI-powered VS Code extension specialized in software testing, QA, and test-driven development.
 
 ## Features
 
-This extension registers a chat participant called **The Test Specialist** that can be invoked using `@testarch` in the VS Code chat interface.
-
-### Key Features:
-
-1. **Chat Participant Registration**: Registers a chat participant with ID `test-specialist.assistant`
-2. **Active File Context**: Automatically pulls in the content of the currently active file in the VS Code editor as context
-3. **Interactive Chat**: Responds to user queries with contextual information about the open file
+- **AI Testing Expert**: Leverages VS Code Language Models for intelligent testing guidance
+- **Context-Aware**: Automatically includes your current file for relevant suggestions
+- **Human-in-the-Loop**: Asks for confirmation before making any code changes
+- **Testing-Focused**: Specializes in unit tests, integration tests, E2E testing, and TDD practices
 
 ## Usage
 
-1. Open a file in VS Code
-2. Open the chat interface (View > Chat or `Ctrl+Alt+I`)
-3. Type `@testarch` followed by your question
-4. The Test Specialist will respond with information about your currently active file and help with software testing
+1. Use `@testarch` in VS Code Chat
+2. Ask testing-related questions (unit tests, TDD, test frameworks, etc.)
+3. Get AI-powered suggestions with explanations
+4. Approve changes through confirmation dialogs
 
 ## Requirements
 
-- VS Code version 1.104.0 or higher
+- VS Code 1.104.0+
+- Access to VS Code Language Models
 
-## Extension Settings
+## Development & Testing
 
-This extension does not currently contribute any settings.
-
-## Development
-
-### Building
+### Build the Extension
 
 ```bash
-npm run compile
+npm install          # Install dependencies
+npm run compile      # Compile TypeScript
 ```
 
-### Linting
+### Run Tests
 
 ```bash
-npm run lint
+npm test            # Run all tests
+npm run lint        # Check code quality
 ```
 
-### Testing
+### Test the Extension Locally
 
-```bash
-npm test
+1. **Open in VS Code**: Open this project folder in VS Code
+2. **Start Debug Session**: Press `F5` or go to Run > Start Debugging
+3. **New VS Code Window**: A new Extension Development Host window will open
+4. **Open Chat**: In the new window, use `Ctrl+Alt+I` or View > Chat
+5. **Test the Assistant**: Type `@testarch help me write unit tests`
+
+### Example Interactions
+
+**Basic Testing Help:**
+
+```text
+@testarch How do I write unit tests for this function?
 ```
 
-## Release Notes
+**Framework-Specific Questions:**
 
-### 0.0.1
+```text
+@testarch Show me Jest test examples for async functions
+@testarch Help me set up Playwright for E2E testing
+```
 
-Initial release of the Test Specialist extension:
-- Chat participant registration
-- Active file context detection
-- Basic chat response handler
+**Code Review:**
+
+```text
+@testarch Review my test file for best practices
+```
+
+### Human-in-the-Loop Features
+
+When the assistant suggests code changes, you'll see:
+
+- 🤖 **HITL Checkpoint** with change summary
+- **Confirmation dialog** with options:
+  - ✅ Apply Changes
+  - 📋 Review First (opens preview)
+  - ❌ Cancel
+
+### Troubleshooting
+
+- **No Language Models**: Ensure you have access to GitHub Copilot or other VS Code language models
+- **Chat Not Working**: Check that the extension is active in the Extensions view
+- **Permission Issues**: Verify language model permissions in VS Code settings
 
 ## License
 
